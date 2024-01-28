@@ -1,0 +1,23 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: DVP
+  datasource:
+    datatype: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/decentralized_video_platform_db?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=UTC
+    username: root
+    password: 2002
+    druid:
+      initial-size: 1
+      min-idle: 1
+      max-wait: 6000
+      max-active: 20
+
+logging:
+  level:
+    root: INFO
+  file:
+    name: ./logs/decentralized-video-platform.log
