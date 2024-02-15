@@ -1,9 +1,15 @@
 server:
   port: 8081
+  servlet:
+    context-path: /api
+
+arb-rpc: wss://arb-sepolia.g.alchemy.com/v2/mzRwv-ctDBaqMDYVCxRX-3H-owXm3Z5S
+contract-address: "0x62141a44d8e519acc0ae2414fa299ed242ffe42c"
+contract-abi:
 
 spring:
   application:
-    name: DVP
+    name: decentralized_video_platform_server
   datasource:
     datatype: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -15,6 +21,17 @@ spring:
       min-idle: 1
       max-wait: 6000
       max-active: 20
+  web:
+    cross-domain:
+      enabled: true
+      allowed-origins: 'http://localhost:8080'
+      allowed-methods: GET, POST, PUT, DELETE, OPTIONS
+      allow-credentials: true
+      allowed-headers: '*'
+  redis:
+    host: localhost
+    port: 6379
+    database: 0
 
 logging:
   level:

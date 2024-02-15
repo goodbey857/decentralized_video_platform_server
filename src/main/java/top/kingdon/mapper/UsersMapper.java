@@ -1,4 +1,4 @@
-package top.kingdon.dao;
+package top.kingdon.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import top.kingdon.dataobject.po.Users;

@@ -1,5 +1,7 @@
 package top.kingdon.service;
 
+import top.kingdon.dataobject.bo.AuthUserBO;
+import top.kingdon.dataobject.dto.AuthUserDTO;
 import top.kingdon.dataobject.po.Users;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -9,5 +11,6 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-01-27 21:00:53
 */
 public interface UsersService extends IService<Users> {
+    public AuthUserBO signIn(String address);
 
 }
