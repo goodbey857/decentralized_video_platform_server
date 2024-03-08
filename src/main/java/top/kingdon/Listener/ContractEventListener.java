@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 @Slf4j
-@Component
+//@Component
 public class ContractEventListener  {
 
     @Value("${contract-address}")

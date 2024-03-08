@@ -2,6 +2,7 @@ package top.kingdon.Listener.obj;
 
 import lombok.Data;
 import org.springframework.context.ApplicationEvent;
+import top.kingdon.utils.MetamaskUtil;
 
 import java.math.BigInteger;
 
@@ -18,4 +19,13 @@ public class VideoPublishedSource {
     BigInteger blockTimestamp;
     BigInteger blockNumber;
     String txHash;
+
+
+    public void setTo(String to){
+        this.to = MetamaskUtil.formatAddress(to);
+    }
+
+    public void setTxHash(String txHash){
+        this.txHash = MetamaskUtil.formatAddress(txHash);
+    }
 }

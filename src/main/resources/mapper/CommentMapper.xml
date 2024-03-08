@@ -2,22 +2,19 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="top.kingdon.mapper.VideoStarMapper">
+<mapper namespace="top.kingdon.mapper.CommentMapper">
 
-    <resultMap id="BaseResultMap" type="top.kingdon.dataobject.po.VideoStar">
+    <resultMap id="BaseResultMap" type="top.kingdon.dataobject.po.Comment">
             <id property="id" column="id" jdbcType="INTEGER"/>
             <result property="videoId" column="video_id" jdbcType="INTEGER"/>
             <result property="userAddress" column="user_address" jdbcType="VARCHAR"/>
+            <result property="content" column="content" jdbcType="VARCHAR"/>
+            <result property="replayTo" column="replay_to" jdbcType="INTEGER"/>
             <result property="createdAt" column="created_at" jdbcType="TIMESTAMP"/>
-            <result property="canceledAt" column="canceled_at" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         id,video_id,user_address,
-        created_at,canceled_at
+        content,replay_to,created_at
     </sql>
-    <update id="updateCanceledAt">
-        update video_star set canceled_at = NOW() where video_id = #{videoId} and user_address =
-        #{userAddress}
-    </update>
 </mapper>

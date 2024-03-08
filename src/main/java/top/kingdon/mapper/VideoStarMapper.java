@@ -1,5 +1,7 @@
 package top.kingdon.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import top.kingdon.dataobject.po.VideoStar;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -9,8 +11,10 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2024-02-15 13:23:45
 * @Entity top.kingdon.dataobject.po.VideoStar
 */
+@Mapper
 public interface VideoStarMapper extends BaseMapper<VideoStar> {
 
+    void updateCanceledAt(@Param("videoId") int videoID,@Param("userAddress") String userAddress);
 }
 
 

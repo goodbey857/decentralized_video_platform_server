@@ -1,5 +1,6 @@
 package top.kingdon.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
 import top.kingdon.dataobject.po.VideoHistory;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
@@ -9,6 +10,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 * @createDate 2024-02-15 13:23:31
 * @Entity top.kingdon.dataobject.po.VideoHistory
 */
+@Mapper
 public interface VideoHistoryMapper extends BaseMapper<VideoHistory> {
 
 }

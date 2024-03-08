@@ -1,5 +1,8 @@
 package top.kingdon.dataobject.vo;
 
+import lombok.Data;
+
+@Data
 public class VideoVO {
     private int id;
     private String title;
@@ -9,8 +12,14 @@ public class VideoVO {
     private String authorAddress;
     private String authorName;
     private String authorPhotoCid;
-    private int likeNum;
-    private int commentNum;
-    private int startNum;
+    private Integer seriesId;
+    private String seriesTitle;
+    private String seriesCoverCid;
+    private String seriesDescription;
+    private Long likeNum;
+    private Long commentNum;
+    private Long starNum;
+    private Long viewNum;
+    private Long createAt;
 
 }

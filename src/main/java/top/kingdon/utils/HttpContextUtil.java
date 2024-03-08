@@ -19,13 +19,13 @@ public class HttpContextUtil {
         return requestAttributes.getRequest();
     }
 
-    public static HttpServletResponse getRespponse(){
+    public static HttpServletResponse getResponse(){
         ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         return requestAttributes.getResponse();
     }
 
     public static void setCookie(String name,String value){
-        getRespponse().addCookie(new Cookie(name,value));
+        getResponse().addCookie(new Cookie(name,value));
     }
 
     public static Cookie getCookie(String name) {

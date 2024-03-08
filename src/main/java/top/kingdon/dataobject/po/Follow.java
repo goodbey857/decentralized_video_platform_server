@@ -5,18 +5,16 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Date;
 import lombok.Data;
-import top.kingdon.utils.MetamaskUtil;
 
 /**
  * 
- * @TableName videos
+ * @TableName follow
  */
-@TableName(value ="videos")
+@TableName(value ="follow")
 @Data
-public class Videos implements Serializable {
+public class Follow implements Serializable {
     /**
      * 
      */
@@ -24,42 +22,14 @@ public class Videos implements Serializable {
     private Integer id;
 
     /**
-     * 
+     * 粉丝
      */
-    private String cid;
+    private String followerAddress;
 
     /**
-     * 
+     * 被关注者
      */
-    private String title;
-
-    /**
-     * 
-     */
-    private String description;
-
-    /**
-     * 
-     */
-    private String coverCid;
-
-
-    /**
-     * 
-     */
-    private String userAddress;
-
-    /**
-     * 
-     */
-    private Integer series;
-
-
-
-    private BigInteger blockNumber;
-
-
-    private String txHash;
+    private String followingAddress;
 
     /**
      * 
@@ -69,9 +39,8 @@ public class Videos implements Serializable {
     /**
      * 
      */
-    private Date updatedAt = new Date();
+    private Date canceledAt;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
-
 }

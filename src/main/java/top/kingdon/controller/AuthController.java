@@ -5,6 +5,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import top.kingdon.config.SessionKey;
 import top.kingdon.dataobject.bo.AuthUserBO;
 import top.kingdon.dataobject.dto.AuthUserDTO;
 import top.kingdon.service.UsersService;
@@ -39,7 +40,7 @@ public class AuthController {
         }
 
         AuthUserBO authUserBO = usersService.signIn(authUserDTO.getAddress());
-        HttpContextUtil.setSessionAttribute("address",authUserBO.getAddress());
+        HttpContextUtil.setSessionAttribute(SessionKey.USER_ADDRESS,authUserBO.getAddress());
         log.info("登录成功，user: {} ", authUserDTO.getAddress());
         return ApiResponse.ok().put("user", authUserBO);
 

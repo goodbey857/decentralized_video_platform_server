@@ -38,7 +38,7 @@ public class Users implements Serializable {
     /**
      * 
      */
-    private String profileImage;
+    private String profileImageCid;
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;

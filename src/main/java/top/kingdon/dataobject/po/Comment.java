@@ -5,18 +5,18 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Date;
 import lombok.Data;
-import top.kingdon.utils.MetamaskUtil;
+import lombok.NoArgsConstructor;
 
 /**
  * 
- * @TableName videos
+ * @TableName comment
  */
-@TableName(value ="videos")
+@TableName(value ="comment")
 @Data
-public class Videos implements Serializable {
+@NoArgsConstructor
+public class Comment implements Serializable {
     /**
      * 
      */
@@ -26,23 +26,7 @@ public class Videos implements Serializable {
     /**
      * 
      */
-    private String cid;
-
-    /**
-     * 
-     */
-    private String title;
-
-    /**
-     * 
-     */
-    private String description;
-
-    /**
-     * 
-     */
-    private String coverCid;
-
+    private Integer videoId;
 
     /**
      * 
@@ -52,26 +36,18 @@ public class Videos implements Serializable {
     /**
      * 
      */
-    private Integer series;
+    private String content;
 
-
-
-    private BigInteger blockNumber;
-
-
-    private String txHash;
+    /**
+     * 
+     */
+    private Integer replayTo;
 
     /**
      * 
      */
     private Date createdAt;
 
-    /**
-     * 
-     */
-    private Date updatedAt = new Date();
-
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
-
 }
