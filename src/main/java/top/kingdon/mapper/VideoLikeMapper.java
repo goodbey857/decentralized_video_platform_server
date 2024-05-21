@@ -4,6 +4,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import top.kingdon.dataobject.po.VideoLike;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import top.kingdon.dataobject.po.Videos;
+
+import java.util.List;
 
 /**
 * @author 古德白
@@ -14,7 +17,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 @Mapper
 public interface VideoLikeMapper extends BaseMapper<VideoLike> {
     public void updateCanceledAt(@Param("videoId") Integer videoId, @Param("userAddress")String userAddress);
-
+    List<Videos> likedVideos(@Param("userAddress") String userAddress);
 }
 
 

@@ -10,4 +10,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface VideoLikeService extends IService<VideoLike> {
 
+    Long likeCount(Integer videoId);
+
+    Boolean isLiked(Integer videoId, String address);
+
+    void doLike(Integer videoId, String address);
+
+    void undoLike(Integer videoId, String address);
+
+    Long totalLikeContByAddress(String address);
 }

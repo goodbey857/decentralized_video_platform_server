@@ -1,6 +1,7 @@
 package top.kingdon.utils;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class ApiResponse extends HashMap<String, Object> {
 
@@ -42,6 +43,11 @@ public class ApiResponse extends HashMap<String, Object> {
 
     public ApiResponse put(String key, Object value) {
         super.put(key, value);
+        return this;
+    }
+
+    public ApiResponse putMap(Map map) {
+        this.putAll(map);
         return this;
     }
 

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import top.kingdon.dataobject.vo.CommentVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
 * @author 古德白
@@ -14,5 +15,6 @@ import java.util.List;
 */
 @Service
 public interface CommentService extends IService<Comment> {
-    public List<CommentVO> getComment(Integer videoId);
+    public List<CommentVO> getComment(Integer page, Integer size, Integer... videoId);
+    public Map<String,Object> getAllComment(Integer page, Integer size,String search, Map<String,Boolean> orderMap);
 }

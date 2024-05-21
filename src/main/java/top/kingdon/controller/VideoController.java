@@ -4,17 +4,18 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.google.protobuf.Api;
 import org.apache.coyote.http2.Http2Protocol;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
 import top.kingdon.config.RedisKey;
 import top.kingdon.config.SessionKey;
 import top.kingdon.dataobject.po.Comment;
+import top.kingdon.dataobject.po.Follow;
+import top.kingdon.dataobject.po.Series;
 import top.kingdon.dataobject.po.Videos;
 import top.kingdon.dataobject.vo.VideoVO;
-import top.kingdon.service.CommentService;
-import top.kingdon.service.VideosService;
+import top.kingdon.service.*;
+import top.kingdon.service.impl.VideoStarServiceImpl;
 import top.kingdon.utils.ApiResponse;
 import top.kingdon.utils.HttpContextUtil;
 
@@ -28,9 +29,15 @@ public class VideoController {
     @Resource
     VideosService  videosService;
     @Resource
-    CommentService  commentService;
+    FollowService followService;
     @Resource
-    RedisTemplate redisTemplate;
+    SeriesService seriesService;
+    @Resource
+    VideoLikeService videoLikeService;
+    @Resource
+    VideoStarService videoStarService;
+
+
     @GetMapping("/hot/{start}/{size}")
     public ApiResponse getHotVideoList(@PathVariable int start, @PathVariable int size) {
         List<VideoVO> videoVOList = videosService.hotVideoList(start, size);
@@ -43,44 +50,67 @@ public class VideoController {
         return  ApiResponse.ok().put("data",videoVOList);
     }
 
-    public ApiResponse getFollowVideoList() {
-        return null;
+    @GetMapping("/follow/{start}/{size}")
+    public ApiResponse getFollowVideoList(@PathVariable int start , @PathVariable int size) {
+        String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
+        List<String> followerAddress = followService.getFollowerAddress(userAddress);
+        List<VideoVO> videoVOList = Collections.emptyList();
+        if(!followerAddress.isEmpty()){
+
+            videoVOList = videosService.getVideoVOListByAddress(followerAddress, start, size);
+
+        }
+
+        return ApiResponse.ok().put("data",videoVOList);
     }
 
+    @GetMapping("/starred")
     public ApiResponse getStartedVideoList() {
-        return null;
+        String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
+        List<VideoVO> videoVOList = videosService.starVideoList(userAddress);
+        return ApiResponse.ok().put("data",videoVOList);
     }
 
-    public ApiResponse getHistoryVideoList() {
-        return null;
+    @GetMapping("/liked")
+    public ApiResponse getLikedVideoList() {
+        String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
+        List<VideoVO> videoVOList = videosService.likedVideoList(userAddress);
+        return ApiResponse.ok().put("data",videoVOList);
     }
 
-    public ApiResponse getSomebodyVideoList() {
-        return null;
+
+
+    @GetMapping("/somebody/{userAddress}/{page}/{size}")
+    public ApiResponse getSomebodyVideoList(@PathVariable String userAddress,@PathVariable int page, @PathVariable int size) {
+        if(userAddress == null){
+            return  ApiResponse.error("用户地址不能为空");
+        }
+        if("@me".equals(userAddress)){
+            userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
+        }
+        List<VideoVO> videoVOList = videosService.somebodyVideoList(userAddress, page, size);
+        return ApiResponse.ok().put("data",videoVOList);
     }
 
-    public ApiResponse getVideoDetail() {
-        return null;
-    }
 
     @GetMapping("/like/{videoId}")
     public ApiResponse like(@PathVariable Integer videoId){
         String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
-        videosService.like(videoId,userAddress);
+        videoLikeService.doLike(videoId,userAddress);
         return ApiResponse.ok();
     }
 
     @GetMapping("/unlike/{videoId}")
     public  ApiResponse unlike(@PathVariable Integer videoId){
         String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
-        videosService.unlike(videoId,userAddress);
+        videoLikeService.undoLike(videoId,userAddress);
         return ApiResponse.ok();
     }
 
     @GetMapping("/star/{videoId}")
     public ApiResponse star(@PathVariable Integer videoId){
         String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
-        videosService.star(videoId,userAddress);
+        videoStarService.star(videoId,userAddress);
         return ApiResponse.ok();
     }
 
@@ -88,7 +118,7 @@ public class VideoController {
     @GetMapping("/unstar/{videoId}")
     public ApiResponse unstar(@PathVariable Integer  videoId){
         String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
-        videosService.unstar(videoId,userAddress);
+        videoStarService.unstar(videoId,userAddress);
         return ApiResponse.ok();
     }
 
@@ -98,23 +128,44 @@ public class VideoController {
         String userAddress = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
         videosService.view(videoId,userAddress);
         VideoVO videoMetadata = videosService.getVideoVOByID(videoId);
-        Boolean likeStatus = redisTemplate.opsForSet().isMember(RedisKey.getLikeKeyOfVideo(videoId), userAddress);
-        Boolean starStatus = redisTemplate.opsForSet().isMember(RedisKey.getStarKeyOfVideo(videoId),userAddress);
+        if(videoMetadata==null){
+            return ApiResponse.error("视频不存在");
+        }
 
+        Boolean likeStatus = videoLikeService.isLiked(videoId,userAddress);
+        Boolean starStatus = videoStarService.isStar(videoId,userAddress);
+
+        Follow one = followService.getOne(new LambdaQueryWrapper<Follow>().eq(Follow::getFollowingAddress, videoMetadata.getAuthorAddress())
+                .eq(Follow::getFollowerAddress, userAddress).isNull(Follow::getCanceledAt));
+        boolean followStatus = one != null;
         return ApiResponse.ok().put("videoMetadata",videoMetadata)
                 .put("likeStatus",likeStatus)
-                .put("starStatus",starStatus);
+                .put("starStatus",starStatus)
+                .put("followStatus",followStatus);
 
     }
 
     @GetMapping("/series/{seriesId}")
     public ApiResponse getSeriesVideoList(@PathVariable Integer seriesId){
-        List<Videos> seriesVideoList = Collections.emptyList();
-        if(seriesId != null){
-            seriesVideoList = videosService.list(new LambdaQueryWrapper<Videos>().eq(Videos::getSeries,seriesId).orderBy(true,true, Videos::getCreatedAt));
-        }
+        List<VideoVO> seriesVideoList = videosService.getSeriesVideoList(seriesId);
         return ApiResponse.ok().put("seriesVideoList",seriesVideoList);
     }
+
+    @GetMapping("/series/list/{address}")
+    public ApiResponse getSeriesList(@PathVariable String address){
+        if(StringUtils.isEmpty(address) || "@me".equals(address)){
+            address = HttpContextUtil.getSessionAttribute(SessionKey.USER_ADDRESS);
+        }
+        List<Series> seriesList = seriesService.list(new LambdaQueryWrapper<Series>().eq(Series::getUserAddress,address));
+        return ApiResponse.ok().put("seriesList",seriesList);
+    }
+
+    @GetMapping("/search")
+    public ApiResponse search(@RequestParam String word, @RequestParam Integer page, @RequestParam Integer size){
+        List<VideoVO> data = videosService.search(word, page, size);
+        return ApiResponse.ok().put("data",data);
+    }
+
 
 
 }

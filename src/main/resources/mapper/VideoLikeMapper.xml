@@ -16,7 +16,15 @@
         id,video_id,user_address,
         created_at,canceled_at
     </sql>
+    <select id="likedVideos" resultType="top.kingdon.dataobject.po.Videos">
+        select videos.*, video_like.created_at as ord from videos,video_like
+        where videos.id = video_like.video_id
+          and video_like.user_address = #{userAddress}
+          and video_like.canceled_at is null
+        and videos.canceled_at is null
+        order by ord desc
+    </select>
     <update id="updateCanceledAt">
-        update video_like set canceled_at = now() where video_id = #{videoId} and user_address = #{userAddress}
+        update video_like set canceled_at = now() where video_id = #{videoId} and user_address = #{userAddress} and canceled_at is null
     </update>
 </mapper>

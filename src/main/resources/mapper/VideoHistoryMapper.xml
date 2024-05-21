@@ -15,4 +15,55 @@
         id,video_id,user_address,
         created_at
     </sql>
+    <select id="analyzeViewDay" resultType="top.kingdon.dataobject.bo.AnalyzeCount">
+        SELECT
+            COUNT(*) AS y,
+            DAY(video_history.created_at) AS x
+        FROM
+            videos
+                INNER JOIN
+            video_history
+            ON
+                videos.id = video_history.video_id
+        WHERE
+            videos.user_address = #{address}
+          AND video_history.created_at >= DATE_SUB(CURDATE(), INTERVAL 12 DAY)
+        GROUP BY
+            DAY(video_history.created_at)
+        order by  x;
+    </select>
+    <select id="analyzeViewWeek" resultType="top.kingdon.dataobject.bo.AnalyzeCount">
+        SELECT
+            COUNT(*) AS y,
+            WEEKOFYEAR(video_history.created_at) AS x
+        FROM
+            videos
+                INNER JOIN
+            video_history
+            ON
+                videos.id = video_history.video_id
+        WHERE
+            videos.user_address = #{address}
+          AND video_history.created_at >= DATE_SUB(CURDATE(), INTERVAL 12 week)
+        GROUP BY
+            WEEKOFYEAR(video_history.created_at)
+        order by  x;
+    </select>
+    <select id="analyzeViewMonth" resultType="top.kingdon.dataobject.bo.AnalyzeCount">
+        SELECT
+            COUNT(*) AS y,
+            MONTH(video_history.created_at) AS x
+        FROM
+            videos
+                INNER JOIN
+            video_history
+            ON
+                videos.id = video_history.video_id
+        WHERE
+            videos.user_address = #{address}
+          AND video_history.created_at >= DATE_SUB(CURDATE(), INTERVAL 1 year)
+        GROUP BY
+            MONTH(video_history.created_at)
+        order by  x;
+    </select>
 </mapper>

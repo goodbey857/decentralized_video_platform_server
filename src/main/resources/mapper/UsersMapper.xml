@@ -9,11 +9,32 @@
             <result property="username" column="username" jdbcType="VARCHAR"/>
             <result property="email" column="email" jdbcType="VARCHAR"/>
             <result property="bio" column="bio" jdbcType="VARCHAR"/>
-            <result property="profileImage" column="profile_image_cid" jdbcType="VARCHAR"/>
+            <result property="profileImageCid" column="profile_image_cid" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="Base_Column_List">
         address,username,email,
-        bio,profile_image
+        bio,profile_image_cid
     </sql>
+<!--    //获取用户数据，用户地址，首次登录时间，24小时访问次数，视频总数，粉丝数量，最后一次登录时间，加入黑名单，移除黑名单，-->
+
+    <select id="selectUserData" resultType="top.kingdon.dataobject.bo.UserData">
+        select users.address as userAddress,
+               users.username as username,
+               min(visit_record.created_at) as firstLoginTime,
+               count(visit_record.id) as visitTimes,
+               max(visit_record.created_at) as lastLoginTime
+        from users left outer join visit_record on users.address = visit_record.user_address
+        <where>
+            <if test="userAddress != null and userAddress != ''">
+                users.address = #{userAddress}
+            </if>
+        </where>
+        group by users.address
+        <foreach collection="orderMap" item="value" index="key" separator="," open="order by">
+            ${key} <if test="value == true">desc</if>
+        </foreach>
+    </select>
+
+
 </mapper>

@@ -9,5 +9,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-02-15 13:23:18
 */
 public interface VideoCommentService extends IService<VideoComment> {
+    public Long commentCount(Integer id);
+    public Long totalCommentContByAddress(String address);
 
 }

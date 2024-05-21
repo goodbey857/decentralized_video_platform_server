@@ -23,4 +23,7 @@
         user_address,series,created_at,
         updated_at
     </sql>
+    <select id="getIdsByAddress" resultType="java.lang.Integer">
+        select id from videos where user_address = #{address}
+    </select>
 </mapper>

@@ -21,6 +21,8 @@ import org.springframework.stereotype.Component;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.websocket.WebSocketService;
 
+import java.net.ConnectException;
+
 @Component
 public class ConfigBeans {
     @Value("${arb-rpc}")
@@ -30,11 +32,12 @@ public class ConfigBeans {
         return new HeaderHttpSessionIdResolver("token");
     }
 
-//    @Bean
+    @Bean
     public Web3j web3Client(){
         WebSocketService wss = new WebSocketService(ARB_RPC, false);
 
         try {
+//            this.reConnect(wss);
             wss.connect();
         } catch (Exception e) {
             System.out.println("Error while connecting to WSS service: " + e);
@@ -42,8 +45,23 @@ public class ConfigBeans {
 
         // build web3j client
         Web3j client = Web3j.build(wss);
+        System.out.println("Connected to ARB RPC: ");
         return client;
     }
+    private void reConnect(WebSocketService wss){
+        try {
+            wss.connect((s)->{},(t)->{
+                this.reConnect(wss);
+            },()->{
+                System.out.println("Disconnected from ARB RPC");
+                this.reConnect(wss);
+            });
+        } catch (ConnectException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     @Bean(name = "redisTemplate")
     public RedisTemplate<String, Object> getRedisTemplate(RedisConnectionFactory factory) {

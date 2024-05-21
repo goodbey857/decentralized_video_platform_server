@@ -4,6 +4,9 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import top.kingdon.dataobject.po.VideoStar;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import top.kingdon.dataobject.po.Videos;
+
+import java.util.List;
 
 /**
 * @author 古德白
@@ -15,6 +18,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 public interface VideoStarMapper extends BaseMapper<VideoStar> {
 
     void updateCanceledAt(@Param("videoId") int videoID,@Param("userAddress") String userAddress);
+    List<Videos> startedVideos(@Param("userAddress") String userAddress);
 }
 
 

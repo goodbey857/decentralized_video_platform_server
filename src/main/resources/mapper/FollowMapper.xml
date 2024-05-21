@@ -16,4 +16,6 @@
         id,follower_address,following_address,
         created_at,canceled_at
     </sql>
+    <select id="selectFollowList" resultType="java.lang.String">select following_address from follow where follower_address = #{ userId } and canceled_at is null</select>
+    <select id="selectFanList" resultType="java.lang.String">select follower_address from follow where following_address = #{ userId } and canceled_at is null</select>
 </mapper>

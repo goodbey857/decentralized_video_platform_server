@@ -1,8 +1,13 @@
 package top.kingdon.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import top.kingdon.dataobject.po.Comment;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import top.kingdon.dataobject.vo.CommentVO;
+
+import java.util.Map;
 
 /**
 * @author 古德白
@@ -12,6 +17,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 @Mapper
 public interface CommentMapper extends BaseMapper<Comment> {
+    public IPage<CommentVO> getAllCommentData(IPage<CommentVO> page, @Param("address") String address, @Param("search") String search, @Param("orderMap") Map<String,Boolean> orderMap);
 
 }
 

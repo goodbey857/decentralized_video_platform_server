@@ -1,5 +1,6 @@
 package top.kingdon.utils;
 
+import org.springframework.util.StringUtils;
 import org.web3j.crypto.Keys;
 import org.web3j.crypto.Sign;
 import org.web3j.utils.Numeric;
@@ -61,11 +62,17 @@ public class MetamaskUtil {
     }
 
     public static String formatAddress(String address) {
+        if(StringUtils.isEmpty(address)) return null;
         return ensureAddressPrefix(address);
     }
 
     public static void main(String[] args) {
         String message = getMessage("0x523fE72693c9B97EA03E3B6Fe09E47BB81b0B935");
         System.out.println(message);
+    }
+
+    public static boolean isValidAddress(String address) {
+        if(StringUtils.isEmpty(address)) return false;
+        return address.matches("^0x[0-9a-fA-F]{40}$");
     }
 }

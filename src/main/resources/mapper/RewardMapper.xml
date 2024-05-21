@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="top.kingdon.mapper.RewardMapper">
+
+    <resultMap id="BaseResultMap" type="top.kingdon.dataobject.po.Reward">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="address" column="address" jdbcType="VARCHAR"/>
+            <result property="videoId" column="video_id" jdbcType="INTEGER"/>
+            <result property="reward" column="reward" jdbcType="DOUBLE"/>
+            <result property="createAt" column="create_at" jdbcType="TIMESTAMP"/>
+            <result property="score" column="score" jdbcType="INTEGER"/>
+            <result property="totalScore" column="total_score" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,address,video_id,
+        reward,create_at,score,
+        total_score
+    </sql>
+    <select id="getAllReward" resultType="top.kingdon.dataobject.vo.RewardVO">
+        select reward.id as id,
+               reward.address as address,
+               videos.title as title,
+               reward.reward as reward,
+               reward.create_at as created_at,
+               users.username as username, users.profile_image_cid as profile_image_cid
+        from reward left join users on reward.address = users.address
+                    left join videos on reward.video_id = videos.id
+        <where>
+            <if test="address!=null" >reward.address=#{address}</if>
+        </where>
+    </select>
+</mapper>

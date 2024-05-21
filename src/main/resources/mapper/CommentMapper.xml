@@ -17,4 +17,22 @@
         id,video_id,user_address,
         content,replay_to,created_at
     </sql>
+    <select id="getAllCommentData" resultType="top.kingdon.dataobject.vo.CommentVO">
+        select comment.id as id, video_id, comment.user_address as user_address,content, replay_to,
+               comment.created_at as created_at, username,profile_image_cid as profile_photo_cid,title,cover_cid
+        from
+            comment left join users on comment.user_address=users.address
+                    left join videos on comment.video_id = videos.id
+        <where>
+            <if test="address != null and address != ''">
+                and comment.user_address = #{address}
+            </if>
+            <if test="search != null and search != ''">
+                and videos.title like concat('%',#{search},'%') or users.username like concat('%',#{search},'%')
+            </if>
+        </where>
+        <foreach collection="orderMap" item="value" index="key" separator="," open="order by">
+            ${key} <if test="value == true">desc</if>
+        </foreach>
+    </select>
 </mapper>

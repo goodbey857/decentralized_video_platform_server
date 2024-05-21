@@ -8,6 +8,7 @@ import java.math.BigInteger;
 
 @Data
 public class VideoPublishedSource {
+    Integer id;
     String to;
     String cid;
     String title;

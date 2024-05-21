@@ -37,7 +37,7 @@ public class WriteToBlockChain {
     // build web3j client
     static Web3j client = Web3j.build(wss);
 
-    private static final String contractAddress = "0x62141a44d8e519acc0ae2414fa299ed242ffe42c";
+    private static final String contractAddress = "0x53D4F62Ddf0bE196771820Ff1Ec6E30834da0eDb";
     static Credentials credentials = Credentials.create("4eeaec53e6e2525c5b956ce3af50e695a2ae29fcf13acd6378408e1124c88ef2");
 
     static BigInteger nonce;
@@ -146,7 +146,7 @@ public class WriteToBlockChain {
         nonce = nonce.add(BigInteger.valueOf(1));
 
         Function function = new Function(
-                "publishVideo",
+                "mint",
                 Arrays.asList(new Address(videos.getOwner()),
                         new Utf8String(videos.getCid()),
                         new Utf8String(videos.getTitle()==null?"":videos.getTitle()),
@@ -161,7 +161,7 @@ public class WriteToBlockChain {
         String encodedFunction = FunctionEncoder.encode(function);
 
         BigInteger gasLimit = new BigInteger("30000000");
-        RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, BigInteger.valueOf(110000000),gasLimit, contractAddress, encodedFunction);
+        RawTransaction rawTransaction = RawTransaction.createTransaction(nonce, BigInteger.valueOf(2000000000L),gasLimit, contractAddress, encodedFunction);
 
         org.web3j.protocol.core.methods.response.EthSendTransaction response =
                 client.ethSendRawTransaction(Numeric.toHexString(TransactionEncoder.signMessage(rawTransaction, credentials)))
@@ -210,7 +210,7 @@ public class WriteToBlockChain {
         ResultSet videoMetadatas = getVideoMetadata();
         int a = 0;
         while (videoMetadatas.next()) {
-            if(a>20) break;
+            if(a>100) break;
             a++;
             VideoMetadata videos = new VideoMetadata();
             videos.setCid(pathToCidMapping.get(videoMetadatas.getString("video_path")));

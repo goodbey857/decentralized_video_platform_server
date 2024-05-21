@@ -7,17 +7,20 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import top.kingdon.Listener.event.VideoPublishedEvent;
 import top.kingdon.Listener.obj.VideoPublishedSource;
+import top.kingdon.config.RedisKey;
 import top.kingdon.dataobject.po.Series;
 import top.kingdon.dataobject.po.Videos;
 import top.kingdon.service.SeriesService;
 import top.kingdon.service.VideosService;
 import top.kingdon.utils.MetamaskUtil;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.Date;
 
 @Component
@@ -28,6 +31,9 @@ public class ContractEventToDBListener {
 
     @Autowired
     SeriesService seriesService;
+
+    @Autowired
+    RedisTemplate redisTemplate;
 
     @Async
     @EventListener(VideoPublishedEvent.class)
@@ -45,8 +51,13 @@ public class ContractEventToDBListener {
             videos.setSeries(series.getId());
         }
 
+        try{
+            videosService.save(videos);
+            redisTemplate.opsForHash().increment(RedisKey.VIDEO_COUNT_KEY,source.getTo(),1);
+        }catch (Exception e){
+            System.out.println("视频已存在");
+        }
 
-        videosService.saveOrUpdate(videos,new LambdaQueryWrapper<Videos>().eq(Videos::getUserAddress,videos.getUserAddress()).eq(Videos::getCid,videos.getCid()));
     }
 
     private Videos castVideoPublishedSourceToVideos(VideoPublishedSource source) {

@@ -46,6 +46,8 @@ public class VideoComment implements Serializable {
      */
     private Date createdAt;
 
+    private Date canceledAt;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

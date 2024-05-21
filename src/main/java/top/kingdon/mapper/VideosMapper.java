@@ -1,8 +1,12 @@
 package top.kingdon.mapper;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import top.kingdon.dataobject.po.Videos;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+import java.util.List;
 
 /**
 * @author 古德白
@@ -12,6 +16,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 @Mapper
 public interface VideosMapper extends BaseMapper<Videos> {
+    List<Integer> getIdsByAddress(@Param("address")String address);
 
 
 }

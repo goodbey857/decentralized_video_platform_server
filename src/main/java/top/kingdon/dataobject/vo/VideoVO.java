@@ -2,6 +2,8 @@ package top.kingdon.dataobject.vo;
 
 import lombok.Data;
 
+import java.util.Date;
+
 @Data
 public class VideoVO {
     private int id;
@@ -20,6 +22,7 @@ public class VideoVO {
     private Long commentNum;
     private Long starNum;
     private Long viewNum;
-    private Long createAt;
+    private Long reward;
+    private Date createAt;
 
 }

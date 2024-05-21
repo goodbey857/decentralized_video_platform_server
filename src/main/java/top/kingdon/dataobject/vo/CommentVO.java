@@ -26,6 +26,10 @@ public class CommentVO {
 
     private String profilePhotoCid;
 
+    private String title;
+
+    private String coverCid;
+
     public CommentVO(Comment comment, Users user){
         this.id = comment.getId();
         this.videoId = comment.getVideoId();

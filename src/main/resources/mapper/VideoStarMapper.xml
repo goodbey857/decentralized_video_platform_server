@@ -20,4 +20,12 @@
         update video_star set canceled_at = NOW() where video_id = #{videoId} and user_address =
         #{userAddress}
     </update>
+    <select id="startedVideos" resultType="top.kingdon.dataobject.po.Videos">
+        select videos.*, video_star.canceled_at as ord from videos,video_star
+        where videos.id = video_star.video_id
+          and video_star.user_address = #{userAddress}
+          and video_star.canceled_at is null
+          and videos.canceled_at is null
+        order by ord desc;
+    </select>
 </mapper>

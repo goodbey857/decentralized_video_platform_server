@@ -1,16 +1,22 @@
 package top.kingdon.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import org.springframework.beans.BeanUtils;
+import org.assertj.core.util.Lists;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.CollectionUtils;
 import top.kingdon.config.RedisKey;
 import top.kingdon.dataobject.po.*;
 import top.kingdon.dataobject.vo.VideoVO;
 import top.kingdon.mapper.*;
 import top.kingdon.service.VideosService;
 import org.springframework.stereotype.Service;
+import top.kingdon.utils.MetamaskUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -51,137 +57,195 @@ public class VideosServiceImpl extends ServiceImpl<VideosMapper, Videos>
         }
         List<Videos> list = this.listByIds(range);
 
-        return videosListToVideoVOList(list);
+        return videosListToVideoVOList(list, true);
     }
 
     @Override
     public List<VideoVO> newVideoList(int start, int size) {
         LambdaQueryWrapper<Videos> videosLambdaQueryWrapper = new LambdaQueryWrapper<Videos>().orderByDesc(Videos::getCreatedAt);
-        Page<Videos> videosPage = this.page(new Page<Videos>(start, size), videosLambdaQueryWrapper);
-
-//        Page<Videos> videosPage = videosMapper.selectPage(new Page<Videos>(start, size), videosLambdaQueryWrapper);
-        List<Videos> videosList = videosPage.getRecords();
-        if  (videosList.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return videosListToVideoVOList(videosList);
+        return getVideoVOS(start, size, videosLambdaQueryWrapper, true);
     }
 
 
     @Override
-    public List<VideoVO> followVideoList() {
+    public List<VideoVO> likedVideoList(String userAddress) {
+        List<Videos> videos = videoLikeMapper.likedVideos(userAddress);
+        return videosListToVideoVOList(videos,true);
+    }
+
+    @Override
+    public List<VideoVO> starVideoList(String userAddress) {
+        List<Videos> videos = videoStarMapper.startedVideos(userAddress);
+        return videosListToVideoVOList(videos, true);
+    }
+
+
+
+    @Override
+    public List<VideoVO> somebodyVideoList(String userAddress,Integer page, Integer size) {
+        LambdaQueryWrapper<Videos> queryWrapper = new LambdaQueryWrapper<Videos>().eq(Videos::getUserAddress, userAddress);
+        List<VideoVO> videoVOS = getVideoVOS(page, size, queryWrapper,true);
+        return videoVOS;
+    }
+
+    @Override
+    public List<Videos> getVideoListByID(Collection<Integer> ids) {
+
         return null;
     }
 
     @Override
-    public List<VideoVO> starVideoList() {
-        return null;
+    public List<Integer> getVideoIDListByAddress(String userAddress) {
+        return this.baseMapper.getIdsByAddress(userAddress);
     }
 
     @Override
-    public List<VideoVO> historyVideoList() {
-        return null;
-    }
-
-    @Override
-    public List<VideoVO> somebodyVideoList(String userAddress) {
-        return null;
-    }
-
-    @Override
-    public List<Videos> getVideoListByID(List<Integer> ids) {
-        List<Videos> list = redisTemplate.opsForValue().multiGet(ids);
-        if (list == null || list.size() != ids.size()) {
-            if (list != null) {
-                List<Integer> cacheVideos = list.stream().map(videos -> videos.getId()).collect(Collectors.toList());
-                List<Integer> difference = ids.stream()
-                        .filter(e -> !cacheVideos.contains(e))
-                        .collect(Collectors.toList());
-                if (difference.size() > 0) {
-                    List<Videos> unCacheVideos = videosMapper.selectBatchIds(difference);
-                    unCacheVideos.stream().forEach(videos -> redisTemplate.opsForValue().set(videos.getId(), videos));
-                    list.addAll(unCacheVideos);
-                }
-            } else {
-                List<Videos> unCacheVideos = videosMapper.selectBatchIds(ids);
-                unCacheVideos.stream().forEach(videos -> redisTemplate.opsForValue().set(videos.getId(), videos));
-                list.addAll(unCacheVideos);
+    public Map<String,Object> getAllVideo(int page, int size,String search, Map<String,Boolean> orderMap) {
+        QueryWrapper<Videos> queryWrapper = new QueryWrapper<>();
+        if(StringUtils.isNotBlank(search)){
+            if(MetamaskUtil.isValidAddress(search)){
+                queryWrapper.eq("user_address",search);
+            }else{
+                queryWrapper.like("title",search);
             }
         }
-        return list;
+
+        if(!CollectionUtils.isEmpty(orderMap)) {
+            orderMap.forEach((key, value) -> {
+                if (value) {
+                    queryWrapper.orderByDesc(true,key);
+                } else {
+                    queryWrapper.orderByAsc(true,key);
+                }
+            });
+        }
+
+
+        Page<Videos> videosPage = this.page(new Page<>(page, size), queryWrapper);
+        List<Videos> videosList = videosPage.getRecords();
+        if(CollectionUtils.isEmpty(videosList)){
+            return Collections.emptyMap();
+        }
+        List<VideoVO> videoVOList = videosListToVideoVOList(videosList, true);
+        long total = videosPage.getTotal();
+        return Map.of("data",videoVOList,"total",total);
+
+
+
     }
 
-    @Override
-    public boolean like(int videoID, String userAddress) {
-        redisTemplate.opsForSet().add(RedisKey.getLikeKeyOfVideo(videoID),userAddress);
-        VideoLike videoLike = new VideoLike();
-        videoLike.setVideoId(videoID);
-        videoLike.setUserAddress(userAddress);
-        videoLike.setCreatedAt(new Date());
-        videoLikeMapper.insert(videoLike);
-        return true;
-    }
+
 
     @Override
-    public boolean unlike(int videoID, String userAddress) {
-        redisTemplate.opsForSet().remove(RedisKey.getLikeKeyOfVideo(videoID),userAddress);
-        videoLikeMapper.updateCanceledAt(videoID,userAddress);
-        return true;
+    public Long getUserViewCount(String userAddress){
+        List<Integer> ids = getVideoIDListByAddress(userAddress);
+        if(CollectionUtils.isEmpty(ids)) return  0L;
+        return getViewCount(ids);
     }
 
-    @Override
-    public boolean star(int videoID, String userAddress) {
-        redisTemplate.opsForSet().add(RedisKey.getStarKeyOfVideo(videoID),userAddress);
-        VideoStar videoStar = new VideoStar();
-        videoStar.setVideoId(videoID);
-        videoStar.setUserAddress(userAddress);
-        videoStar.setCreatedAt(new Date());
-        videoStarMapper.insert(videoStar);
-        return true;
+    public Long  getViewCount(List<Integer> ids){
+        List<Double> score = redisTemplate.opsForZSet().score(RedisKey.VIEW_KEY, ids.toArray());
+        if(CollectionUtils.isEmpty(score)){
+            return 0L;
+        }
+        return score.stream().mapToLong((value -> {
+            if(value == null) return 0L;
+            return value.longValue();
+        })).sum();
     }
 
-    @Override
-    public boolean unstar(int videoID, String userAddress) {
-        redisTemplate.opsForSet().remove(RedisKey.getStarKeyOfVideo(videoID),userAddress);
-        videoStarMapper.updateCanceledAt(videoID,userAddress);
-        return true;
-    }
 
     @Override
     public boolean view(int videoID,String userAddress) {
         redisTemplate.opsForZSet()
                 .incrementScore(RedisKey.VIEW_KEY,videoID,1);
-
+        VideoHistory videoHistory = new VideoHistory();
+        videoHistory.setUserAddress(userAddress);
+        videoHistory.setVideoId(videoID);
+        videoHistory.setCreatedAt(new Date());
+        videoHistoryMapper.insert(videoHistory);
 
         return true;
     }
     public VideoVO getVideoVOByID(int videoID){
         Videos videos = videosMapper.selectById(videoID);
-        return videosToVideoVO(videos);
+        if(videos==null) return null;
+        return videosToVideoVO(videos,false);
 
     }
 
-    private VideoVO videosToVideoVO(Videos videos){
-        // todo 以后可以重写Mapper.selectOne方法，增强一个将数据缓存到reids的功能。
+    @Override
+    public List<VideoVO> getVideoVOListByAddress(List<String> address, int start, int size) {
+        LambdaQueryWrapper<Videos> videosLambdaQueryWrapper =
+                new LambdaQueryWrapper<Videos>().in(Videos::getUserAddress, address)
+                        .orderByDesc(Videos::getCreatedAt);
+        return getVideoVOS(start, size, videosLambdaQueryWrapper,true);
+    }
+
+    @Override
+    public List<VideoVO> getSeriesVideoList(Integer id) {
+        List<VideoVO> seriesVideoList = Collections.emptyList();
+        if(id != null){
+            LambdaQueryWrapper<Videos> videosLambdaQueryWrapper = new LambdaQueryWrapper<Videos>().eq(Videos::getSeries, id).orderBy(true, true, Videos::getCreatedAt);
+            seriesVideoList = getVideoVOS(1, 1000, videosLambdaQueryWrapper,false);
+        }
+
+        return seriesVideoList;
+    }
+
+    @Override
+    public List<VideoVO> search(String keyword, int start, int size) {
+        LambdaQueryWrapper<Videos> videosLambdaQueryWrapper = new LambdaQueryWrapper<Videos>().like(Videos::getTitle, keyword).isNull(Videos::getCanceledAt).orderByDesc(Videos::getCreatedAt);
+        return getVideoVOS(start, size, videosLambdaQueryWrapper,true);
+    }
+
+    @Override
+    public Long getVideoCount(String address) {
+
+        Object o = redisTemplate.opsForHash().get(RedisKey.VIDEO_COUNT_KEY, address);
+        return  o == null ? 0 : Long.parseLong(o.toString());
+
+    }
+
+    @NotNull
+    private List<VideoVO> getVideoVOS(int start, int size, LambdaQueryWrapper<Videos> videosLambdaQueryWrapper, boolean withoutSeries) {
+        Page<Videos> page = this.page(new Page<Videos>(start, size), videosLambdaQueryWrapper);
+        List<Videos> videosList = page.getRecords();
+        if  (videosList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return videosListToVideoVOList(videosList, withoutSeries);
+    }
+
+    private VideoVO videosToVideoVO(Videos videos,boolean withoutSeries){
+        // todo 以后可以重写Mapper.selectOne方法，增强一个将数据缓存到redis的功能。
         Users users = usersMapper.selectOne(new LambdaQueryWrapper<Users>().eq(Users::getAddress, videos.getUserAddress()));
-        Series series = seriesMapper.selectOne(new LambdaQueryWrapper<Series>().eq(Series::getId, videos.getSeries()));
+        Series series = null;
+        if(!withoutSeries){
+            series = seriesMapper.selectOne(new LambdaQueryWrapper<Series>().eq(Series::getId, videos.getSeries()));
+        }
         return mergeVideoAndUsersAndSeries(videos,users,series);
     }
 
-    private List<VideoVO> videosListToVideoVOList(List<Videos> videosList){
+    private List<VideoVO> videosListToVideoVOList(List<Videos> videosList,boolean withoutSeries){
+        if(CollectionUtils.isEmpty(videosList)){
+            return Collections.emptyList();
+        }
         List<VideoVO>  videoVOList = new ArrayList<>();
         HashMap<String,Users> usersMap = new HashMap<>();
         HashMap<Integer,Series> seriesMap = new HashMap<>();
         Collection<String> userAddressList = videosList.stream().map(Videos::getUserAddress).collect(Collectors.toSet());
         Collection<Integer> seriesIdList = videosList.stream().map(Videos::getSeries).collect(Collectors.toSet());
+
         usersMapper.selectBatchIds(userAddressList).forEach(users -> usersMap.put(users.getAddress(),users));
-        seriesMapper.selectBatchIds(seriesIdList).forEach(series -> seriesMap.put(series.getId(),series));
+        if(!withoutSeries){
+            seriesMapper.selectBatchIds(seriesIdList).forEach(series -> seriesMap.put(series.getId(),series));
+        }
+
         for (Videos videos : videosList) {
             VideoVO videoVO = mergeVideoAndUsersAndSeries(videos, usersMap.get(videos.getUserAddress()), seriesMap.get(videos.getSeries()));
             videoVOList.add(videoVO);
         }
-
-
         return videoVOList;
     }
 
@@ -192,7 +256,7 @@ public class VideosServiceImpl extends ServiceImpl<VideosMapper, Videos>
         videoVO.setTitle(videos.getTitle());
         videoVO.setDescription(videos.getDescription());
         videoVO.setCoverCid(videos.getCoverCid());
-        videoVO.setCreateAt(videos.getCreatedAt().getTime());
+        videoVO.setCreateAt(videos.getCreatedAt());
         if(users==null){
             users = new Users();
             users.setAddress(videos.getUserAddress());
@@ -212,8 +276,8 @@ public class VideosServiceImpl extends ServiceImpl<VideosMapper, Videos>
         videoVO.setLikeNum(like);
         Long star = redisTemplate.opsForSet().size(RedisKey.getStarKeyOfVideo(videos.getId()));
         videoVO.setStarNum(star);
-        Long comment = redisTemplate.opsForSet().size(RedisKey.getCommentKeyOfVideo(videos.getId()));
-        videoVO.setCommentNum(comment);
+        Integer comment = (Integer) redisTemplate.opsForHash().get(RedisKey.COMMENT_COUNT_KEY,videos.getId().toString());
+        videoVO.setCommentNum(comment==null ? 0L :comment.longValue());
         Double score = redisTemplate.opsForZSet().score(RedisKey.VIEW_KEY, videos.getId());
         if(score==null){
             videoVO.setViewNum(0L);

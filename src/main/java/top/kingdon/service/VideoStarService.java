@@ -10,4 +10,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface VideoStarService extends IService<VideoStar> {
 
+    boolean star(int videoID, String userAddress);
+
+    boolean unstar(int videoID, String userAddress);
+
+    boolean isStar(int videoID, String userAddress);
+
+    long starCount(int videoID);
+
+    Long totalStarContByAddress(String address);
 }

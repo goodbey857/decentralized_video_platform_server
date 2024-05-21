@@ -11,35 +11,31 @@ import org.web3j.protocol.http.HttpService;
 import org.web3j.tx.Contract;
 import org.web3j.tx.ManagedTransaction;
 
-import java.util.Arrays;
-import java.util.List;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.*;
+import java.util.stream.IntStream;
 
 public class Test2 {
+    public static void main(String[] args) {
+//        LocalDate now = LocalDate.now();
+//        System.out.println(now.getDayOfMonth());
+//        System.out.println(now.getMonth().getValue());
+//        WeekFields weekFields = WeekFields.of(Locale.getDefault());
+//        // 获取指定日期所在月份的第几周
+//        int weekOfMonth = now.get(weekFields.weekOfMonth());
+//        System.out.println(weekOfMonth);
+//        List<Integer> data = Arrays.asList(1, 3, 6,   11,2, 7,10, 8, 5, 4, 9, 12);
+        List<Integer> data  = Arrays.asList(12,11,10,9,8,7,6,5,4,3,2,1);
+        int dayOfMonth = 5;
+        data.sort((x1, x2) -> {
+            if(x1<= dayOfMonth && x2<= dayOfMonth){
+                return x1-x2;
+            }else if(x1> dayOfMonth && x2> dayOfMonth){
+                return x1-x2;
+            }else return dayOfMonth-x1;
+        });
+        System.out.println(data);
+    }
 
-//    public static void main(String[] args) {
-//        // Create a new instance of Web3j
-//        Web3j web3j = Web3j.build(new HttpService("https://mainnet.infura.io/v3/your-project-id"));
-//
-//        // Load the contract
-//        String contractAddress = "0x123456...";
-//        String privateKey = "your-private-key";
-//        Credentials credentials = Credentials.create(privateKey);
-//        OffchainResolverContract contract = new OffchainResolverContract(contractAddress, web3j, credentials, ManagedTransaction.GAS_PRICE, Contract.GAS_LIMIT);
-//
-//        // Create an Event object
-//        Event event = new Event("Transfer",
-//                Arrays.asList(new TypeReference<Address>() {}, new TypeReference<Address>() {}, new TypeReference<Uint256>() {}));
-//
-//        // Parse the event logs
-//        List<Contract.EventValuesWithLog> eventValuesWithLogs = contract.getLogs(event);
-//        for (Contract.EventValuesWithLog eventValuesWithLog : eventValuesWithLogs) {
-//            List<Type> indexedValues = eventValuesWithLog.getIndexedValues();
-//            List<Type> nonIndexedValues = eventValuesWithLog.getNonIndexedValues();
-//
-//            // Print the parsed values
-//            System.out.println("From: " + indexedValues.get(0));
-//            System.out.println("To: " + indexedValues.get(1));
-//            System.out.println("Value: " + nonIndexedValues.get(0));
-//        }
-//    }
 }

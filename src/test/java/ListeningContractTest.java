@@ -1,13 +1,13 @@
-import org.web3j.abi.EventEncoder;
-import org.web3j.abi.EventValues;
-import org.web3j.abi.FunctionReturnDecoder;
-import org.web3j.abi.TypeReference;
+import org.web3j.abi.*;
 import org.web3j.abi.datatypes.*;
 import org.web3j.abi.datatypes.generated.Bytes32;
+import org.web3j.abi.datatypes.generated.Uint256;
 import org.web3j.crypto.ContractUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameterName;
+import org.web3j.protocol.core.DefaultBlockParameterNumber;
 import org.web3j.protocol.core.methods.request.EthFilter;
+import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.websocket.WebSocketService;
 import org.web3j.tx.ClientTransactionManager;
 import org.web3j.tx.Contract;
@@ -15,11 +15,12 @@ import org.web3j.tx.Contract;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class ListeningContractTest {
     public static String WSS_RPC = "wss://arb-sepolia.g.alchemy.com/v2/mzRwv-ctDBaqMDYVCxRX-3H-owXm3Z5S";
-    public static String CONSTRACT_ADDRESS = "0xB269bb5824d68732188708eA51356fF758DABC5B";
-    public static void main(String[] args) {
+    public static String CONSTRACT_ADDRESS = "0x8165B15Ae68ABf97a4e0721fA4D90F0966DE7c07";
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
         WebSocketService wss = new WebSocketService(WSS_RPC, false);
 
         try {
@@ -30,11 +31,23 @@ public class ListeningContractTest {
 
         // build web3j client
         Web3j client = Web3j.build(wss);
-
+//        EthBlock ethBlock = client.ethGetBlockByNumber(new DefaultBlockParameterNumber(1), false).sendAsync().get();
+//        System.out.println(ethBlock.getBlock().getMiner());
         // create filter for contract events
         EthFilter filter = new EthFilter(DefaultBlockParameterName.EARLIEST, DefaultBlockParameterName.LATEST, CONSTRACT_ADDRESS);
+
         Event event = new Event("VideoPublished", Arrays.asList(
+                new TypeReference<Uint256>(true) {
+                },
                 new TypeReference<Address>(true) {
+                },
+                new TypeReference<Utf8String>() {
+                },
+                new TypeReference<Utf8String>() {
+                },
+                new TypeReference<Utf8String>() {
+                },
+                new TypeReference<Utf8String>() {
                 },
                 new TypeReference<Utf8String>() {
                 },
@@ -47,13 +60,13 @@ public class ListeningContractTest {
         // subscribe to events
         client.ethLogFlowable(filter).subscribe(log -> {
             System.out.println("Event received");
-
+            Uint256 id = (Uint256) FunctionReturnDecoder.decodeIndexedValue(log.getTopics().get(1),new TypeReference<Uint256>(true) {});
+            String address = FunctionReturnDecoder.decodeAddress(log.getTopics().get(2));
             List<Type> results = FunctionReturnDecoder.decode(log.getData(),
                     event.getNonIndexedParameters());
-            String indexedResults = FunctionReturnDecoder.decodeAddress(log.getTopics().get(1));
 
-
-            System.out.println("indexedResult :"+indexedResults);
+            System.out.println("id :" + id.getValue());
+            System.out.println("indexedResult :" + address);
             for (Type result : results) {
                 if (result instanceof Utf8String) {
                     String stringValue = ((Utf8String) result).getValue();

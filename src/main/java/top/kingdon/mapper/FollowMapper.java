@@ -1,8 +1,11 @@
 package top.kingdon.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import top.kingdon.dataobject.po.Follow;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+import java.util.List;
 
 /**
 * @author 古德白
@@ -12,6 +15,8 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 */
 @Mapper
 public interface FollowMapper extends BaseMapper<Follow> {
+    List<String> selectFollowList(@Param("userId") String userId);
+    List<String> selectFanList(@Param("userId") String userId);
 
 }
 

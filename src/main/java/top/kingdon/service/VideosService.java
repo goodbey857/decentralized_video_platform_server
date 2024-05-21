@@ -1,10 +1,14 @@
 package top.kingdon.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import jnr.ffi.annotations.In;
 import top.kingdon.dataobject.po.Videos;
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.kingdon.dataobject.vo.VideoVO;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
 * @author 古德白
@@ -14,15 +18,21 @@ import java.util.List;
 public interface VideosService extends IService<Videos> {
     public List<VideoVO> hotVideoList(int start, int size);
     public List<VideoVO> newVideoList(int start, int size);
-    public List<VideoVO> followVideoList();
-    public List<VideoVO> starVideoList();
-    public List<VideoVO> historyVideoList();
-    public List<VideoVO> somebodyVideoList(String userAddress);
-    public List<Videos> getVideoListByID(List<Integer> ids);
-    public boolean like(int videoID, String userAddress);
-    public boolean unlike(int videoID, String userAddress);
-    public boolean star(int videoID, String userAddress);
-    public boolean unstar(int videoID, String userAddress);
+    public List<VideoVO> likedVideoList(String userAddress);
+    public List<VideoVO> starVideoList(String userAddress);
+    public List<VideoVO> somebodyVideoList(String userAddress,Integer page, Integer size);
+    public List<Videos> getVideoListByID(Collection<Integer> ids);
+    public List<Integer> getVideoIDListByAddress(String userAddress);
+
+    Map<String,Object> getAllVideo(int page, int size, String search, Map<String, Boolean> orderMap);
+
+    Long getUserViewCount(String userAddress);
+
     public boolean view(int videoID, String userAddress);
     public VideoVO getVideoVOByID(int videoID);
+    public List<VideoVO> getVideoVOListByAddress(List<String> address,int start, int size);
+    public List<VideoVO> getSeriesVideoList(Integer id);
+    public List<VideoVO> search(String keyword,int start, int size);
+
+    Long getVideoCount(String address);
 }
