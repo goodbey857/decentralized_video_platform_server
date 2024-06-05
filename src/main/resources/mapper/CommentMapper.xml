@@ -23,14 +23,14 @@
         from
             comment left join users on comment.user_address=users.address
                     left join videos on comment.video_id = videos.id
-        <where>
+        where comment.canceled_at is null
             <if test="address != null and address != ''">
                 and comment.user_address = #{address}
             </if>
             <if test="search != null and search != ''">
                 and videos.title like concat('%',#{search},'%') or users.username like concat('%',#{search},'%')
             </if>
-        </where>
+
         <foreach collection="orderMap" item="value" index="key" separator="," open="order by">
             ${key} <if test="value == true">desc</if>
         </foreach>

@@ -33,33 +33,26 @@ public class ConfigBeans {
     }
 
     @Bean
-    public Web3j web3Client(){
-        WebSocketService wss = new WebSocketService(ARB_RPC, false);
+    public WebSocketService webSocketService(){
+        WebSocketService wss = new WebSocketService(ARB_RPC,false);
 
         try {
-//            this.reConnect(wss);
+            System.out.println("Connecting to ARB RPC: " + ARB_RPC);
             wss.connect();
         } catch (Exception e) {
             System.out.println("Error while connecting to WSS service: " + e);
         }
+        return wss;
+    }
+    @Bean
+    public Web3j web3Client(WebSocketService wss){
 
         // build web3j client
         Web3j client = Web3j.build(wss);
         System.out.println("Connected to ARB RPC: ");
         return client;
     }
-    private void reConnect(WebSocketService wss){
-        try {
-            wss.connect((s)->{},(t)->{
-                this.reConnect(wss);
-            },()->{
-                System.out.println("Disconnected from ARB RPC");
-                this.reConnect(wss);
-            });
-        } catch (ConnectException e) {
-            e.printStackTrace();
-        }
-    }
+
 
 
 

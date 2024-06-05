@@ -16,9 +16,8 @@ import top.kingdon.dataobject.po.Videos;
 
 import java.math.BigInteger;
 import java.sql.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
+import java.sql.Date;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import org.web3j.abi.datatypes.*;
 
@@ -34,10 +33,10 @@ public class WriteToBlockChain {
     }
 
 
-    // build web3j client
+//     build web3j client
     static Web3j client = Web3j.build(wss);
 
-    private static final String contractAddress = "0x53D4F62Ddf0bE196771820Ff1Ec6E30834da0eDb";
+    private static final String contractAddress = "0x597D7954139f7e1Ebbf6a31dF4086a45D366b588";
     static Credentials credentials = Credentials.create("4eeaec53e6e2525c5b956ce3af50e695a2ae29fcf13acd6378408e1124c88ef2");
 
     static BigInteger nonce;
@@ -209,8 +208,9 @@ public class WriteToBlockChain {
         HashMap<String, String> usernameToAddressMapping = readUsernameToAddressMapping();
         ResultSet videoMetadatas = getVideoMetadata();
         int a = 0;
+        List<String> titles = new ArrayList<>(1000);
         while (videoMetadatas.next()) {
-            if(a>100) break;
+//            if(a>100) break;
             a++;
             VideoMetadata videos = new VideoMetadata();
             videos.setCid(pathToCidMapping.get(videoMetadatas.getString("video_path")));
@@ -221,8 +221,10 @@ public class WriteToBlockChain {
             videos.setSeries(videoMetadatas.getString("series"));
             videos.setSeriesCoverCid(pathToCidMapping.get(videoMetadatas.getString("series_cover_path")));
             videos.setSeriesDescription(videoMetadatas.getString("series_description"));
+//            titles.add(videoMetadatas.getString("title"));
             writeToBlockChain(videos);
         }
+        System.out.println(titles);
     }
 
 

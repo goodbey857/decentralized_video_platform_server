@@ -129,6 +129,9 @@ public class RecordController {
                         .or()
                         .eq(VideoTransfer::getDestination, userAddress));
         List<VideoTransfer> records = record.getRecords();
+        if(records.isEmpty()){
+            return ApiResponse.ok().put("record", Collections.emptyList()).put("count",0);
+        }
         Collection<Integer> ids = new HashSet<>(records.size());
         Collection<VideoTransferVO> videoTransferVOS = records.stream().map(e -> {
             ids.add(e.getVideoId());

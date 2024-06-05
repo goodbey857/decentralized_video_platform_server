@@ -2,9 +2,12 @@ package top.kingdon.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.toolkit.SqlRunner;
 import org.bouncycastle.util.Arrays;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -42,6 +45,12 @@ public class AdminController {
     RedisTemplate redisTemplate;
     @Resource
     VisitRecordService visitRecordService;
+    @Resource
+    ReviewService reviewService;
+    @Resource
+    TokenTransferService tokenTransferService;
+    @Value("${ERC20_CONTRACT_ADDRESS}")
+    private String ERC20_CONTRACT_ADDRESS;
 
 
     //获取用户数据，用户地址，首次登录时间，24小时访问次数，视频总数，粉丝数量，最后一次登录时间，加入黑名单，移除黑名单，
@@ -186,13 +195,52 @@ public class AdminController {
 
     @GetMapping("/reward")
     public ApiResponse reward() {
-        return null;
+        Object totalReward = SqlRunner.db().selectObj("select sum(reward) as amount from reward");
+        Object claimedReward = SqlRunner.db().selectObj("select sum(value)/1e18 from token_transfer where source = {0}", ERC20_CONTRACT_ADDRESS);
+        return ApiResponse.ok().put("totalReward",totalReward).put("claimedReward",claimedReward);
     }
 
+    @GetMapping("/visitRecord")
+    public ApiResponse visitRecord() {
+        List<Map<String, Object>> maps = SqlRunner.db().selectList("select any_value(api) as path, count(1) as count from visit_record group by api");
+        return ApiResponse.ok().put("data",maps);
+    }
 
+    public ApiResponse blockUserCount(){
+        Long size = redisTemplate.opsForSet().size(RedisKey.BLOCK_LIST_KEY);
+        return ApiResponse.ok().put("size",size);
+    }
 
+    public ApiResponse waitForJudge(){
+        long count = reviewService.count(new LambdaQueryWrapper<Review>().eq(Review::getStatus, "待审批"));
+        return ApiResponse.ok().put("count",count);
+    }
+    @GetMapping("/adminData")
+    public ApiResponse adminData(){
+        LocalDateTime localDateTime = LocalDate.now().atStartOfDay();
+        Long totalVisit = visitRecordService.count(new QueryWrapper<VisitRecord>().select("distinct user_address").ge(true, "created_at", localDateTime));
 
+        Long totalComment = commentService.count();
+        Long blockUserCount = redisTemplate.opsForSet().size(RedisKey.BLOCK_LIST_KEY);
 
+        Long waitForJudgeCount = reviewService.count(new LambdaQueryWrapper<Review>().eq(Review::getStatus, "待审批"));
+
+        return ApiResponse.ok()
+                .put("totalVisit",totalVisit)
+                .put("totalComment",totalComment)
+                .put("blockUserCount",blockUserCount)
+                .put("waitForJudgeCount",waitForJudgeCount);
+    }
+
+    @GetMapping("/blockVideo")
+    public ApiResponse blockVideo(Integer id){
+        if(id!=null)
+            videosService.update(new LambdaUpdateWrapper<Videos>()
+                    .set(Videos::getCanceledAt,new Date())
+                    .eq(Videos::getId,id));
+        return ApiResponse.ok();
+
+    }
 
 }
 

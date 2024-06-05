@@ -41,7 +41,7 @@ public class RandomDataGenerate {
         PrimitiveIterator.OfInt iterator = new Random().ints(0, videoIds.size()).iterator();
         List<Object> addresses = SqlRunner.db().selectObjs("select address from users");
         PrimitiveIterator.OfInt iterator1 = new Random().ints(0, addresses.size()).iterator();
-        long D2023_1_1 = 1672502400000L;
+        long D2023_1_1 = 1672556909000L;
         long today = new Date().getTime();
         PrimitiveIterator.OfLong iterator2 = new Random().longs(D2023_1_1, today).iterator();
 
